@@ -1,7 +1,5 @@
-// Importa mongoose per definire lo schema dei dati
 const mongoose = require('mongoose');
 
-// Definisce la struttura di un Articolo Accademico
 const ArticoloSchema = new mongoose.Schema({
   titolo: {
     type: String,
@@ -33,6 +31,12 @@ const ArticoloSchema = new mongoose.Schema({
     trim: true,
     unique: true,
     sparse: true
+  },
+  // Riferimento all'utente proprietario dell'articolo
+  utente: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Utente',
+    required: true
   }
 }, {
   timestamps: true,
@@ -40,12 +44,10 @@ const ArticoloSchema = new mongoose.Schema({
   toObject: { virtuals: true }
 });
 
-// Virtual: collega le citazioni a questo articolo senza salvarle qui dentro
 ArticoloSchema.virtual('citazioni', {
   ref: 'Citazione',
   localField: '_id',
   foreignField: 'articolo'
 });
 
-// Esporta il modello per usarlo nelle route API
 module.exports = mongoose.model('Articolo', ArticoloSchema);
