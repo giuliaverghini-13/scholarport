@@ -1,5 +1,13 @@
 # ScholarPort - Gestore di Portfolio Accademico
 
+## Demo Online
+
+- **Sito web:** https://scholarport.vercel.app
+- **API Backend:** https://scholarport-api.onrender.com
+- **Repository GitHub:** https://github.com/giuliaverghini-13/scholarport
+
+> Nota: il piano gratuito di Render mette in pausa il server dopo 15 minuti di inattività. Il primo caricamento potrebbe richiedere 30-50 secondi, poi sarà veloce.
+
 ## Descrizione
 
 ScholarPort è una piattaforma web full-stack per ricercatori accademici che permette di gestire il proprio portfolio di pubblicazioni. L'applicazione consente di organizzare articoli, tracciare citazioni, effettuare ricerche avanzate e presentare il proprio lavoro in un formato professionale. Il portfolio è visibile a tutti, ma solo gli utenti registrati possono creare e gestire i propri articoli.
@@ -25,6 +33,11 @@ ScholarPort è una piattaforma web full-stack per ricercatori accademici che per
 - Jest e Supertest (test backend API)
 - React Testing Library (test frontend componenti)
 - MongoDB Memory Server (database in memoria per i test)
+
+### Deploy
+- Frontend su Vercel (CDN globale)
+- Backend su Render (Node.js cloud)
+- Database su MongoDB Atlas (cloud)
 
 ## Funzionalità
 
@@ -262,3 +275,9 @@ L'interfaccia si adatta in base al ruolo del visitatore:
 - Ogni utente può modificare/eliminare solo i propri articoli
 - Validazione server-side di tutti gli input
 - Middleware auth verifica il token su ogni route protetta
+
+### Deploy
+- Frontend compilato e distribuito su Vercel (CDN globale per caricamenti rapidi)
+- Backend deployato su Render come Web Service Node.js
+- Database ospitato su MongoDB Atlas (cloud gestito)
+- Variabili d'ambiente configurate separatamente su ogni piattaforma
