@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { creaCitazione, eliminaCitazione, aggiornaCitazione } from '../services/api';
 import { toast } from 'react-toastify';
 
-function PannelloCitazioni({ articoloId, citazioni, onAggiorna }) {
+function PannelloCitazioni({ articoloId, citazioni, isProprietario, onAggiorna }) {
   const [mostraForm, setMostraForm] = useState(false);
   const [modificaId, setModificaId] = useState(null);
   const [formDati, setFormDati] = useState({
@@ -17,7 +17,6 @@ function PannelloCitazioni({ articoloId, citazioni, onAggiorna }) {
     setFormDati({ ...formDati, [e.target.name]: e.target.value });
   };
 
-  // Apre il form in modalità creazione
   const apriFormNuovo = () => {
     setModificaId(null);
     setFormDati({
@@ -30,7 +29,6 @@ function PannelloCitazioni({ articoloId, citazioni, onAggiorna }) {
     setMostraForm(true);
   };
 
-  // Apre il form in modalità modifica con i dati della citazione
   const apriFormModifica = (citazione) => {
     setModificaId(citazione._id);
     setFormDati({
@@ -43,7 +41,6 @@ function PannelloCitazioni({ articoloId, citazioni, onAggiorna }) {
     setMostraForm(true);
   };
 
-  // Chiude il form e resetta tutto
   const chiudiForm = () => {
     setMostraForm(false);
     setModificaId(null);
@@ -56,19 +53,16 @@ function PannelloCitazioni({ articoloId, citazioni, onAggiorna }) {
     });
   };
 
-  // Gestisce sia la creazione che la modifica
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       if (modificaId) {
-        // Modalità modifica
         await aggiornaCitazione(modificaId, {
           ...formDati,
           annoCitazione: parseInt(formDati.annoCitazione)
         });
         toast.success('Citazione aggiornata con successo!');
       } else {
-        // Modalità creazione
         await creaCitazione({
           ...formDati,
           articolo: articoloId,
@@ -99,15 +93,17 @@ function PannelloCitazioni({ articoloId, citazioni, onAggiorna }) {
     <div className="pannello-citazioni">
       <div className="citazioni-header">
         <h3>Citazioni ({citazioni.length})</h3>
-        <button
-          className="btn btn-primary btn-sm"
-          onClick={mostraForm ? chiudiForm : apriFormNuovo}
-        >
-          {mostraForm ? 'Annulla' : '+ Aggiungi Citazione'}
-        </button>
+        {isProprietario && (
+          <button
+            className="btn btn-primary btn-sm"
+            onClick={mostraForm ? chiudiForm : apriFormNuovo}
+          >
+            {mostraForm ? 'Annulla' : '+ Aggiungi Citazione'}
+          </button>
+        )}
       </div>
 
-      {mostraForm && (
+      {mostraForm && isProprietario && (
         <form className="form-citazione" onSubmit={handleSubmit}>
           <h4 className="form-citazione-titolo">
             {modificaId ? '✏️ Modifica Citazione' : '➕ Nuova Citazione'}
@@ -187,22 +183,24 @@ function PannelloCitazioni({ articoloId, citazioni, onAggiorna }) {
                 {cit.fonte && <p className="citazione-fonte">{cit.fonte}</p>}
                 {cit.doi && <p className="citazione-doi">DOI: {cit.doi}</p>}
               </div>
-              <div className="citazione-actions">
-                <button
-                  className="btn btn-secondary btn-sm"
-                  onClick={() => apriFormModifica(cit)}
-                  title="Modifica citazione"
-                >
-                  ✏️
-                </button>
-                <button
-                  className="btn btn-danger btn-sm"
-                  onClick={() => handleElimina(cit._id)}
-                  title="Elimina citazione"
-                >
-                  ✕
-                </button>
-              </div>
+              {isProprietario && (
+                <div className="citazione-actions">
+                  <button
+                    className="btn btn-secondary btn-sm"
+                    onClick={() => apriFormModifica(cit)}
+                    title="Modifica citazione"
+                  >
+                    ✏️
+                  </button>
+                  <button
+                    className="btn btn-danger btn-sm"
+                    onClick={() => handleElimina(cit._id)}
+                    title="Elimina citazione"
+                  >
+                    ✕
+                  </button>
+                </div>
+              )}
             </div>
           ))}
         </div>

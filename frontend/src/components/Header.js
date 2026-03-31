@@ -1,10 +1,15 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 function Header() {
-  // Usa il context invece di ricevere props
-  const { utente, effettuaLogout } = useAuth();
+  const { utente, isAutenticato, effettuaLogout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    effettuaLogout();
+    navigate('/');
+  };
 
   return (
     <header className="header">
@@ -20,11 +25,17 @@ function Header() {
         </Link>
         <nav>
           <Link to="/" className="nav-link">Portfolio</Link>
-          <Link to="/nuovo" className="btn btn-primary">+ Nuovo Articolo</Link>
-          <div className="user-info">
-            <span className="username-badge">{utente.username}</span>
-            <button onClick={effettuaLogout} className="btn btn-ghost btn-sm">Esci</button>
-          </div>
+          {isAutenticato ? (
+            <>
+              <Link to="/nuovo" className="btn btn-primary">+ Nuovo Articolo</Link>
+              <div className="user-info">
+                <span className="username-badge">{utente.username}</span>
+                <button onClick={handleLogout} className="btn btn-ghost btn-sm">Esci</button>
+              </div>
+            </>
+          ) : (
+            <Link to="/login" className="btn btn-primary">Accedi</Link>
+          )}
         </nav>
       </div>
     </header>

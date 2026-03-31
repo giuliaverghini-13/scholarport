@@ -1,7 +1,17 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 function CardArticolo({ articolo, onElimina }) {
+  const { utente, isAutenticato } = useAuth();
+
+  // Controlla se l'utente autenticato è il proprietario dell'articolo
+  const isProprietario = isAutenticato && utente &&
+    articolo.utente && (
+      articolo.utente._id === utente.id ||
+      articolo.utente === utente.id
+    );
+
   const formattaData = (data) => {
     return new Date(data).toLocaleDateString('it-IT', {
       year: 'numeric',
@@ -48,17 +58,19 @@ function CardArticolo({ articolo, onElimina }) {
         )}
       </div>
 
-      <div className="card-actions">
-        <Link to={`/modifica/${articolo._id}`} className="btn btn-secondary btn-sm">
-          ✏️ Modifica
-        </Link>
-        <button
-          className="btn btn-danger btn-sm"
-          onClick={() => onElimina(articolo._id)}
-        >
-          🗑️ Elimina
-        </button>
-      </div>
+      {isProprietario && (
+        <div className="card-actions">
+          <Link to={`/modifica/${articolo._id}`} className="btn btn-secondary btn-sm">
+            ✏️ Modifica
+          </Link>
+          <button
+            className="btn btn-danger btn-sm"
+            onClick={() => onElimina(articolo._id)}
+          >
+            🗑️ Elimina
+          </button>
+        </div>
+      )}
     </div>
   );
 }

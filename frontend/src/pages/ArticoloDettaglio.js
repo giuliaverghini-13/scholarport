@@ -1,17 +1,18 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { getArticolo, eliminaArticolo } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 import PannelloCitazioni from '../components/PannelloCitazioni';
 import { toast } from 'react-toastify';
 
 function ArticoloDettaglio() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { utente, isAutenticato } = useAuth();
   const [articolo, setArticolo] = useState(null);
   const [caricamento, setCaricamento] = useState(true);
   const [errore, setErrore] = useState(null);
 
-  // Carica l'articolo dal backend
   const caricaArticolo = useCallback(async () => {
     try {
       setCaricamento(true);
@@ -30,7 +31,13 @@ function ArticoloDettaglio() {
     caricaArticolo();
   }, [caricaArticolo]);
 
-  // Gestisce l'eliminazione
+  // Controlla se l'utente è il proprietario
+  const isProprietario = isAutenticato && utente && articolo &&
+    articolo.utente && (
+      articolo.utente._id === utente.id ||
+      articolo.utente === utente.id
+    );
+
   const handleElimina = async () => {
     if (window.confirm('Sei sicuro di voler eliminare questo articolo e tutte le sue citazioni?')) {
       try {
@@ -43,7 +50,6 @@ function ArticoloDettaglio() {
     }
   };
 
-  // Formatta la data in formato esteso italiano
   const formattaData = (data) => {
     return new Date(data).toLocaleDateString('it-IT', {
       weekday: 'long',
@@ -95,6 +101,9 @@ function ArticoloDettaglio() {
             {articolo.doi && (
               <p><strong>DOI:</strong> <span className="doi-value">{articolo.doi}</span></p>
             )}
+            {articolo.utente && articolo.utente.username && (
+              <p><strong>Pubblicato da:</strong> {articolo.utente.username}</p>
+            )}
           </div>
 
           {articolo.abstract && (
@@ -104,19 +113,22 @@ function ArticoloDettaglio() {
             </div>
           )}
 
-          <div className="dettaglio-actions">
-            <Link to={`/modifica/${articolo._id}`} className="btn btn-secondary">
-              ✏️ Modifica Articolo
-            </Link>
-            <button className="btn btn-danger" onClick={handleElimina}>
-              🗑️ Elimina Articolo
-            </button>
-          </div>
+          {isProprietario && (
+            <div className="dettaglio-actions">
+              <Link to={`/modifica/${articolo._id}`} className="btn btn-secondary">
+                ✏️ Modifica Articolo
+              </Link>
+              <button className="btn btn-danger" onClick={handleElimina}>
+                🗑️ Elimina Articolo
+              </button>
+            </div>
+          )}
         </article>
 
         <PannelloCitazioni
           articoloId={articolo._id}
           citazioni={articolo.citazioni || []}
+          isProprietario={isProprietario}
           onAggiorna={caricaArticolo}
         />
       </div>

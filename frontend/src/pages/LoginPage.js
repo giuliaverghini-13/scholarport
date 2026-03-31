@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { login, registrazione } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'react-toastify';
 
 function LoginPage() {
-  // Usa il context invece di ricevere onLogin come prop
   const { effettuaLogin } = useAuth();
+  const navigate = useNavigate();
   const [isRegistrazione, setIsRegistrazione] = useState(false);
   const [formDati, setFormDati] = useState({
     username: '',
@@ -36,8 +37,8 @@ function LoginPage() {
         toast.success('Login effettuato!');
       }
 
-      // Usa il context per salvare i dati
       effettuaLogin(risposta.dati.utente, risposta.dati.token);
+      navigate('/');
     } catch (error) {
       const messaggio = error.response?.data?.errore || 'Errore durante l\'autenticazione';
       toast.error(messaggio);

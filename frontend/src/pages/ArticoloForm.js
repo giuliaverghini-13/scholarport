@@ -2,11 +2,20 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { creaArticolo, getArticolo, aggiornaArticolo } from '../services/api';
 import { toast } from 'react-toastify';
+import { useAuth } from '../context/AuthContext';
 
 function ArticoloForm() {
   const { id } = useParams();
   const navigate = useNavigate();
   const isModifica = Boolean(id);
+    const { isAutenticato } = useAuth();
+
+  // Se non è autenticato, reindirizza al login
+  useEffect(() => {
+    if (!isAutenticato) {
+      navigate('/login');
+    }
+  }, [isAutenticato, navigate]);
 
   const [formDati, setFormDati] = useState({
     titolo: '',
