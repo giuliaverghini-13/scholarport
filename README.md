@@ -2,7 +2,7 @@
 
 ## Descrizione
 
-ScholarPort è una piattaforma web full-stack per ricercatori accademici che permette di gestire il proprio portfolio di pubblicazioni. L'applicazione consente di organizzare articoli, tracciare citazioni, effettuare ricerche avanzate e presentare il proprio lavoro in un formato professionale. Include un sistema di autenticazione per proteggere i dati di ogni utente.
+ScholarPort è una piattaforma web full-stack per ricercatori accademici che permette di gestire il proprio portfolio di pubblicazioni. L'applicazione consente di organizzare articoli, tracciare citazioni, effettuare ricerche avanzate e presentare il proprio lavoro in un formato professionale. Il portfolio è visibile a tutti, ma solo gli utenti registrati possono creare e gestire i propri articoli.
 
 ## Tecnologie Utilizzate (Stack MERN)
 
@@ -28,18 +28,26 @@ ScholarPort è una piattaforma web full-stack per ricercatori accademici che per
 
 ## Funzionalità
 
-- Autenticazione utente (registrazione, login, logout) con JWT
-- CRUD completo articoli accademici (titolo, autori, abstract, data, DOI)
-- CRUD completo citazioni associate agli articoli
+### Area Pubblica (tutti i visitatori)
+- Visualizzazione di tutti gli articoli del portfolio
+- Dettaglio articolo con abstract e citazioni
 - Ricerca testuale su titolo, autore e abstract
 - Filtri avanzati per autore e anno di pubblicazione
 - Paginazione dei risultati
+
+### Area Protetta (utenti registrati)
+- Registrazione e login con autenticazione JWT
+- Creazione, modifica ed eliminazione dei propri articoli
+- Aggiunta, modifica ed eliminazione delle citazioni sui propri articoli
+- Ogni utente può gestire solo i propri articoli
+
+### Generali
 - Contatore citazioni visibile nelle card
 - Layout responsive (desktop, tablet, mobile)
 - Dark mode con design moderno
-- Dati protetti per utente (ogni utente vede solo i propri articoli)
+- Logo SVG personalizzato
 
-## React Hooks Utilizzati
+## React Hooks e Pattern Utilizzati
 
 - **useState**: gestione dello stato locale dei componenti
 - **useEffect**: caricamento dati al montaggio e side effects
@@ -47,6 +55,7 @@ ScholarPort è una piattaforma web full-stack per ricercatori accademici che per
 - **useMemo**: memorizzazione dei risultati di calcoli
 - **useContext**: stato globale per l'autenticazione (evita il Prop Drilling)
 - **React.memo**: prevenzione re-render inutili dei componenti
+- **Custom Hook (useAuth)**: hook personalizzato per accesso semplificato al context
 
 ## Prerequisiti
 
@@ -141,13 +150,13 @@ scholarport/
 │   ├── middleware/
 │   │   └── auth.js                  # Middleware verifica token JWT
 │   ├── models/
-│   │   ├── Articolo.js              # Schema Mongoose articolo
+│   │   ├── Articolo.js              # Schema Mongoose articolo (con ref utente)
 │   │   ├── Citazione.js             # Schema Mongoose citazione
 │   │   └── Utente.js                # Schema Mongoose utente con bcrypt
 │   ├── routes/
-│   │   ├── articoli.js              # API REST articoli (protette)
-│   │   ├── citazioni.js             # API REST citazioni
-│   │   └── auth.js                  # API REST autenticazione
+│   │   ├── articoli.js              # API REST articoli (GET pubblica, POST/PUT/DELETE protette)
+│   │   ├── citazioni.js             # API REST citazioni (GET pubblica, POST/PUT/DELETE protette)
+│   │   └── auth.js                  # API REST autenticazione (registrazione, login)
 │   ├── test/
 │   │   └── api.test.js              # 10 test funzionali backend
 │   ├── server.js                    # Entry point server Express
@@ -160,24 +169,24 @@ scholarport/
 │   │   └── index.html               # Template HTML principale
 │   ├── src/
 │   │   ├── components/
-│   │   │   ├── Header.js            # Navigazione con useAuth()
+│   │   │   ├── Header.js            # Navigazione con useAuth() e login/logout condizionale
 │   │   │   ├── BarraRicerca.js      # Ricerca e filtri avanzati
-│   │   │   ├── CardArticolo.js      # Card articolo con React.memo
-│   │   │   ├── PannelloCitazioni.js # CRUD citazioni con modifica
+│   │   │   ├── CardArticolo.js      # Card articolo con React.memo e azioni condizionali
+│   │   │   ├── PannelloCitazioni.js # CRUD citazioni con modifica (solo proprietario)
 │   │   │   └── __tests__/
 │   │   │       └── components.test.js # 10 test funzionali frontend
 │   │   ├── context/
-│   │   │   └── AuthContext.js       # Context API per autenticazione
+│   │   │   └── AuthContext.js       # Context API + useContext + custom hook useAuth()
 │   │   ├── pages/
-│   │   │   ├── HomePage.js          # Lista articoli con useMemo/useCallback
-│   │   │   ├── ArticoloDettaglio.js # Dettaglio con pannello citazioni
-│   │   │   ├── ArticoloForm.js      # Form creazione/modifica articolo
+│   │   │   ├── HomePage.js          # Lista articoli con useMemo e useCallback
+│   │   │   ├── ArticoloDettaglio.js # Dettaglio con azioni condizionali per proprietario
+│   │   │   ├── ArticoloForm.js      # Form creazione/modifica (protetto)
 │   │   │   └── LoginPage.js         # Login e registrazione
 │   │   ├── services/
-│   │   │   └── api.js               # Chiamate API con interceptors JWT
+│   │   │   └── api.js               # Chiamate API con interceptors JWT automatici
 │   │   ├── styles/
 │   │   │   └── App.css              # Stili dark mode responsive
-│   │   ├── App.js                   # Root component con AuthProvider
+│   │   ├── App.js                   # Root component con AuthProvider e Router
 │   │   ├── index.js                 # Entry point React
 │   │   └── setupTests.js            # Configurazione test
 │   ├── package.json                 # Dipendenze frontend
@@ -190,30 +199,30 @@ scholarport/
 
 ### Autenticazione
 
-| Metodo | Endpoint | Descrizione |
-|--------|----------|-------------|
-| POST | /api/auth/registrazione | Registra un nuovo utente |
-| POST | /api/auth/login | Effettua il login |
-| GET | /api/auth/me | Dati utente autenticato |
+| Metodo | Endpoint | Accesso | Descrizione |
+|--------|----------|---------|-------------|
+| POST | /api/auth/registrazione | Pubblico | Registra un nuovo utente |
+| POST | /api/auth/login | Pubblico | Effettua il login, restituisce JWT |
+| GET | /api/auth/me | Protetto | Dati utente autenticato |
 
-### Articoli (protette da JWT)
+### Articoli
 
-| Metodo | Endpoint | Descrizione |
-|--------|----------|-------------|
-| GET | /api/articoli | Lista articoli con filtri e paginazione |
-| GET | /api/articoli/:id | Dettaglio articolo con citazioni |
-| POST | /api/articoli | Crea nuovo articolo |
-| PUT | /api/articoli/:id | Aggiorna articolo |
-| DELETE | /api/articoli/:id | Elimina articolo e citazioni |
+| Metodo | Endpoint | Accesso | Descrizione |
+|--------|----------|---------|-------------|
+| GET | /api/articoli | Pubblico | Lista articoli con filtri e paginazione |
+| GET | /api/articoli/:id | Pubblico | Dettaglio articolo con citazioni |
+| POST | /api/articoli | Protetto | Crea nuovo articolo |
+| PUT | /api/articoli/:id | Protetto (proprietario) | Aggiorna articolo |
+| DELETE | /api/articoli/:id | Protetto (proprietario) | Elimina articolo e citazioni |
 
 ### Citazioni
 
-| Metodo | Endpoint | Descrizione |
-|--------|----------|-------------|
-| GET | /api/citazioni/articolo/:id | Citazioni di un articolo |
-| POST | /api/citazioni | Crea nuova citazione |
-| PUT | /api/citazioni/:id | Aggiorna citazione |
-| DELETE | /api/citazioni/:id | Elimina citazione |
+| Metodo | Endpoint | Accesso | Descrizione |
+|--------|----------|---------|-------------|
+| GET | /api/citazioni/articolo/:id | Pubblico | Citazioni di un articolo |
+| POST | /api/citazioni | Protetto (proprietario) | Crea nuova citazione |
+| PUT | /api/citazioni/:id | Protetto (proprietario) | Aggiorna citazione |
+| DELETE | /api/citazioni/:id | Protetto (proprietario) | Elimina citazione |
 
 ### Parametri di ricerca (GET /api/articoli)
 
@@ -231,10 +240,16 @@ scholarport/
 MongoDB è stato scelto per la flessibilità nella gestione di documenti con struttura variabile (es. numero di autori diverso per ogni articolo) e per la naturale integrazione con Node.js tramite Mongoose (ODM).
 
 ### Autenticazione JWT
-Il sistema utilizza JSON Web Token per l'autenticazione stateless. Il token viene generato al login, salvato nel localStorage del browser e inviato automaticamente con ogni richiesta tramite gli interceptors di Axios.
+Il sistema utilizza JSON Web Token per l'autenticazione stateless. Il token viene generato al login, salvato nel localStorage del browser e inviato automaticamente con ogni richiesta tramite gli interceptors di Axios. Le route GET sono pubbliche per permettere la consultazione del portfolio, mentre le operazioni di scrittura (POST, PUT, DELETE) sono protette.
 
 ### Context API (useContext)
-L'autenticazione è gestita tramite React Context API per evitare il Prop Drilling. Il componente AuthProvider avvolge l'intera applicazione e rende i dati dell'utente accessibili da qualsiasi componente tramite l'hook personalizzato useAuth().
+L'autenticazione è gestita tramite React Context API per evitare il Prop Drilling. Il componente AuthProvider avvolge l'intera applicazione e rende i dati dell'utente accessibili da qualsiasi componente tramite l'hook personalizzato useAuth(). Questo permette a componenti come Header, CardArticolo e PannelloCitazioni di mostrare/nascondere le azioni in base allo stato di autenticazione.
+
+### Visibilità Condizionale
+L'interfaccia si adatta in base al ruolo del visitatore:
+- Visitatore non autenticato: vede gli articoli e le citazioni, può cercare e filtrare
+- Utente autenticato: vede in più i pulsanti di creazione, modifica ed eliminazione solo sui propri articoli
+- Il componente Header mostra "Accedi" o "username + Esci" in base allo stato
 
 ### Ottimizzazione Performance
 - React.memo su CardArticolo per evitare re-render inutili
@@ -244,5 +259,6 @@ L'autenticazione è gestita tramite React Context API per evitare il Prop Drilli
 ### Sicurezza
 - Password criptate con bcrypt (salt rounds: 10)
 - Token JWT con scadenza a 7 giorni
-- Ogni utente può vedere e modificare solo i propri articoli
+- Ogni utente può modificare/eliminare solo i propri articoli
 - Validazione server-side di tutti gli input
+- Middleware auth verifica il token su ogni route protetta
