@@ -3,6 +3,7 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 const connectDB = require('./config/db');
 
+// Carica .env solo se il file esiste (in locale)
 dotenv.config();
 
 const app = express();
@@ -40,11 +41,19 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 5000;
 
+// Log per debug
+console.log('PORT:', PORT);
+console.log('MONGODB_URI presente:', !!process.env.MONGODB_URI);
+console.log('JWT_SECRET presente:', !!process.env.JWT_SECRET);
+console.log('NODE_ENV:', process.env.NODE_ENV);
+
 if (process.env.NODE_ENV !== 'test') {
   connectDB().then(() => {
     app.listen(PORT, () => {
       console.log(`Server ScholarPort in esecuzione sulla porta ${PORT}`);
     });
+  }).catch((err) => {
+    console.error('Errore avvio server:', err.message);
   });
 }
 
