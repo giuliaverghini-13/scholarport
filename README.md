@@ -9,7 +9,7 @@ Full-stack MERN application for researchers to manage a portfolio of academic pu
 
 > The free Render tier sleeps the server after 15 minutes of inactivity, so the first load may take 30–50 seconds before the app becomes responsive.
 
-![ScholarPort](docs/screenshot.png)
+   ![ScholarPort](screenshot.png)
 
 ---
 
